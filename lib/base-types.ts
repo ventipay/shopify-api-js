@@ -20,6 +20,7 @@ export interface ConfigParams<T extends ShopifyRestResources = any> {
   customShopDomains?: (RegExp | string)[];
   billing?: BillingConfig;
   restResources?: T;
+  cookieDomain?: string;
   logger?: {
     log?: LogFunction;
     level?: LogSeverity;
@@ -32,6 +33,7 @@ export interface ConfigInterface extends Omit<ConfigParams, 'restResources'> {
   hostScheme: 'http' | 'https';
   scopes: AuthScopes;
   isCustomStoreApp: boolean;
+  cookieDomain: string;
   logger: {
     log: LogFunction;
     level: LogSeverity;
