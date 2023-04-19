@@ -21,6 +21,7 @@ export interface ConfigParams<T extends ShopifyRestResources = any> {
   billing?: BillingConfig;
   restResources?: T;
   cookieDomain?: string;
+  cookiePath?: string;
   logger?: {
     log?: LogFunction;
     level?: LogSeverity;

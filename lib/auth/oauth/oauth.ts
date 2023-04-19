@@ -69,7 +69,7 @@ export function begin(config: ConfigInterface) {
       expires: new Date(Date.now() + 60000),
       sameSite: 'none',
       secure: true,
-      path: callbackPath,
+      path: config.cookiePath,
       domain: config.cookieDomain,
     });
 
