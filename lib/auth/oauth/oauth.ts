@@ -44,7 +44,6 @@ export function begin(config: ConfigInterface) {
     shop,
     callbackPath,
     isOnline,
-    cookieDomain,
     ...adapterArgs
   }: BeginParams): Promise<AdapterResponse> => {
     throwIfCustomStoreApp(
@@ -71,7 +70,7 @@ export function begin(config: ConfigInterface) {
       sameSite: 'none',
       secure: true,
       path: callbackPath,
-      domain: cookieDomain,
+      domain: config.cookieDomain,
     });
 
     const query = {
@@ -174,6 +173,7 @@ export function callback(config: ConfigInterface) {
         sameSite: 'none',
         secure: true,
         path: '/',
+        domain: config.cookieDomain,
       });
     }
 

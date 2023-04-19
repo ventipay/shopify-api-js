@@ -33,7 +33,6 @@ export interface ConfigInterface extends Omit<ConfigParams, 'restResources'> {
   hostScheme: 'http' | 'https';
   scopes: AuthScopes;
   isCustomStoreApp: boolean;
-  cookieDomain: string;
   logger: {
     log: LogFunction;
     level: LogSeverity;
