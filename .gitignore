@@ -10,6 +10,5 @@ database.sqlite
 bundle/
 *.d.ts
 *.d.ts.map
-*.js
 *.js.map
 *.tgz
