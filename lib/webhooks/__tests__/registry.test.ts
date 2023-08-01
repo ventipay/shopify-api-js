@@ -1,6 +1,6 @@
 import {LogSeverity} from '../../types';
 import {shopify} from '../../__tests__/test-helper';
-import {HttpWebhookHandler} from '../types';
+import {HttpWebhookHandlerWithCallback} from '../types';
 
 import {EVENT_BRIDGE_HANDLER, HTTP_HANDLER, PUB_SUB_HANDLER} from './handlers';
 
@@ -15,8 +15,8 @@ function genericWebhookHandler(
 }
 
 describe('shopify.webhooks.addHandlers', () => {
-  let handler1: HttpWebhookHandler;
-  let handler2: HttpWebhookHandler;
+  let handler1: HttpWebhookHandlerWithCallback;
+  let handler2: HttpWebhookHandlerWithCallback;
 
   it('adds two handlers to the webhook registry', async () => {
     handler1 = {
@@ -73,15 +73,22 @@ describe('shopify.webhooks.addHandlers', () => {
     }).toThrow('Can only add multiple handlers when deliveryMethod is Http.');
   });
 
-  it('adds handler with lowercase/slash format to the webhook registry', async () => {
-    shopify.webhooks.addHandlers({
+  it('adds handler with lowercase/slash-period format to the webhook registry', async () => {
+    const handler3: HttpWebhookHandlerWithCallback = {
+      ...HTTP_HANDLER,
+      callback: jest.fn().mockImplementation(genericWebhookHandler),
+    };
+
+    await shopify.webhooks.addHandlers({
       'products/create': handler1,
       'products/delete': handler2,
+      'domain.sub_domain.something_happened': handler3,
     });
-    expect(shopify.webhooks.getTopicsAdded()).toHaveLength(2);
+    expect(shopify.webhooks.getTopicsAdded()).toHaveLength(3);
     expect(shopify.webhooks.getTopicsAdded()).toEqual([
       'PRODUCTS_CREATE',
       'PRODUCTS_DELETE',
+      'DOMAIN_SUB_DOMAIN_SOMETHING_HAPPENED',
     ]);
   });
 });

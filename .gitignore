@@ -12,3 +12,5 @@ bundle/
 *.d.ts.map
 *.js.map
 *.tgz
+.vscode/
+

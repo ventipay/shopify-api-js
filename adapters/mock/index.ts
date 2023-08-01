@@ -5,8 +5,8 @@ import {
   setAbstractConvertRequestFunc,
   setAbstractConvertResponseFunc,
   setAbstractConvertHeadersFunc,
-  setCrypto,
   setAbstractRuntimeString,
+  setCrypto,
 } from '../../runtime';
 
 import {

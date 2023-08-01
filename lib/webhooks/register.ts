@@ -1,10 +1,11 @@
+import {versionCompatible, versionPriorTo} from '../utils/version-compatible';
 import {
   graphqlClientClass,
   GraphqlClient,
 } from '../clients/graphql/graphql_client';
 import {InvalidDeliveryMethodError, ShopifyError} from '../error';
 import {logger} from '../logger';
-import {gdprTopics} from '../types';
+import {ApiVersion, gdprTopics} from '../types';
 import {ConfigInterface} from '../base-types';
 import {Session} from '../session/session';
 
@@ -126,7 +127,7 @@ async function getExistingHandlers(
   let hasNextPage: boolean;
   let endCursor: string | null = null;
   do {
-    const query = buildCheckQuery(endCursor);
+    const query = buildCheckQuery(config, endCursor);
 
     const response = await client.query<WebhookCheckResponse>({
       data: query,
@@ -149,10 +150,27 @@ async function getExistingHandlers(
   return existingHandlers;
 }
 
-function buildCheckQuery(endCursor: string | null) {
-  return queryTemplate(TEMPLATE_GET_HANDLERS, {
-    END_CURSOR: JSON.stringify(endCursor),
-  });
+function buildCheckQuery(config: ConfigInterface, endCursor: string | null) {
+  return removeDeprecatedFields(
+    config,
+    queryTemplate(TEMPLATE_GET_HANDLERS, {
+      END_CURSOR: JSON.stringify(endCursor),
+    }),
+  );
+}
+
+function removeDeprecatedFields(
+  config: ConfigInterface,
+  query: string,
+): string {
+  let processedQuery = query;
+
+  // The privateMetafieldNamespaces field was deprecated in the July22 version, so we need to stop sending it
+  if (versionCompatible(config)(ApiVersion.July22)) {
+    processedQuery = processedQuery.replace('privateMetafieldNamespaces', '');
+  }
+
+  return processedQuery;
 }
 
 function buildHandlerFromNode(edge: WebhookCheckResponseNode): WebhookHandler {
@@ -367,6 +385,7 @@ async function runMutation({
       deliveryMethod: handler.deliveryMethod,
       success: isSuccess(result.body, handler, operation),
       result: result.body,
+      operation,
     };
   } catch (error) {
     if (error instanceof InvalidDeliveryMethodError) {
@@ -374,6 +393,7 @@ async function runMutation({
         deliveryMethod: handler.deliveryMethod,
         success: false,
         result: {message: error.message},
+        operation,
       };
     } else {
       throw error;
@@ -431,9 +451,12 @@ function buildMutation(
     if (handler.metafieldNamespaces) {
       params.metafieldNamespaces = JSON.stringify(handler.metafieldNamespaces);
     }
+
     if (
       handler.deliveryMethod === DeliveryMethod.Http &&
-      handler.privateMetafieldNamespaces
+      handler.privateMetafieldNamespaces &&
+      // This field was deprecated in the July22 version
+      versionPriorTo(config)(ApiVersion.July22)
     ) {
       params.privateMetafieldNamespaces = JSON.stringify(
         handler.privateMetafieldNamespaces,
@@ -495,7 +518,7 @@ function isSuccess(
   );
 }
 
-export const TEMPLATE_GET_HANDLERS = `{
+export const TEMPLATE_GET_HANDLERS = `query shopifyApiReadWebhookSubscriptions {
   webhookSubscriptions(
     first: 250,
     after: {{END_CURSOR}},
@@ -530,7 +553,7 @@ export const TEMPLATE_GET_HANDLERS = `{
 }`;
 
 export const TEMPLATE_MUTATION = `
-  mutation webhookSubscription {
+  mutation shopifyApiCreateWebhookSubscription {
     {{MUTATION_NAME}}(
       {{IDENTIFIER}},
       {{MUTATION_PARAMS}}

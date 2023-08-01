@@ -10,13 +10,14 @@ import {hashString} from '../../runtime/crypto';
 import {HashFormat} from '../../runtime/crypto/types';
 
 import {
-  RequestParams,
-  RequestResponse,
-  RecurringPaymentResponse,
-  SinglePaymentResponse,
   BillingConfigSubscriptionPlan,
   BillingConfigOneTimePlan,
   BillingConfigUsagePlan,
+  BillingRequestParams,
+  BillingRequestResponse,
+  RecurringPaymentResponse,
+  RequestResponseData,
+  SinglePaymentResponse,
 } from './types';
 
 interface RequestInternalParams {
@@ -39,11 +40,13 @@ interface RequestUsageSubscriptionInternalParams extends RequestInternalParams {
 }
 
 export function request(config: ConfigInterface) {
-  return async function ({
+  return async function <Params extends BillingRequestParams>({
     session,
     plan,
     isTest = true,
-  }: RequestParams): Promise<string> {
+    returnUrl: returnUrlParam,
+    returnObject = false,
+  }: Params): Promise<BillingRequestResponse<Params>> {
     if (!config.billing || !config.billing[plan]) {
       throw new BillingError({
         message: `Could not find plan ${plan} in billing settings`,
@@ -53,14 +56,21 @@ export function request(config: ConfigInterface) {
 
     const billingConfig = config.billing[plan];
 
-    const returnUrl = buildEmbeddedAppUrl(config)(
-      hashString(`${session.shop}/admin`, HashFormat.Base64),
+    const cleanShopName = session.shop.replace('.myshopify.com', '');
+    const embeddedAppUrl = buildEmbeddedAppUrl(config)(
+      hashString(`admin.shopify.com/store/${cleanShopName}`, HashFormat.Base64),
     );
+
+    const appUrl = `${config.hostScheme}://${config.hostName}?shop=${session.shop}`;
+
+    // if provided a return URL, use it, otherwise use the embedded app URL or hosted app URL
+    const returnUrl =
+      returnUrlParam || (config.isEmbeddedApp ? embeddedAppUrl : appUrl);
 
     const GraphqlClient = graphqlClientClass({config});
     const client = new GraphqlClient({session});
 
-    let data: RequestResponse;
+    let data: RequestResponseData;
     switch (billingConfig.interval) {
       case BillingInterval.OneTime: {
         const mutationOneTimeResponse = await requestSinglePayment({
@@ -102,7 +112,14 @@ export function request(config: ConfigInterface) {
       });
     }
 
-    return data.confirmationUrl;
+    if (returnObject) {
+      return data as Omit<
+        RequestResponseData,
+        'userErrors'
+      > as BillingRequestResponse<Params>;
+    } else {
+      return data.confirmationUrl as BillingRequestResponse<Params>;
+    }
   };
 }
 
@@ -130,6 +147,14 @@ async function requestRecurringPayment({
                 price: {
                   amount: billingConfig.amount,
                   currencyCode: billingConfig.currencyCode,
+                },
+                discount: {
+                  durationLimitInIntervals:
+                    billingConfig.discount?.durationLimitInIntervals,
+                  value: {
+                    amount: billingConfig.discount?.value?.amount,
+                    percentage: billingConfig.discount?.value?.percentage,
+                  },
                 },
               },
             },
@@ -163,6 +188,8 @@ async function requestUsagePayment({
         name: plan,
         returnUrl,
         test: isTest,
+        trialDays: billingConfig.trialDays,
+        replacementBehavior: billingConfig.replacementBehavior,
         lineItems: [
           {
             plan: {
@@ -239,6 +266,11 @@ const RECURRING_PURCHASE_MUTATION = `
       trialDays: $trialDays
       replacementBehavior: $replacementBehavior
     ) {
+      appSubscription {
+        id
+        name
+        test
+      }
       confirmationUrl
       userErrors {
         field
@@ -261,6 +293,11 @@ const ONE_TIME_PURCHASE_MUTATION = `
       returnUrl: $returnUrl
       test: $test
     ) {
+      appPurchaseOneTime {
+        id
+        name
+        test
+      }
       confirmationUrl
       userErrors {
         field

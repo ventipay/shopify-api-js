@@ -1,9 +1,9 @@
-import {Session} from '../session/session';
 import {
   BillingInterval,
   BillingReplacementBehavior,
   RecurringBillingIntervals,
 } from '../types';
+import {Session} from '../session/session';
 
 export interface BillingConfigPlan {
   amount: number;
@@ -18,6 +18,24 @@ export interface BillingConfigSubscriptionPlan extends BillingConfigPlan {
   interval: RecurringBillingIntervals;
   trialDays?: number;
   replacementBehavior?: BillingReplacementBehavior;
+  discount?: BillingConfigSubscriptionPlanDiscount;
+}
+
+export interface BillingConfigSubscriptionPlanDiscountAmount {
+  amount: number;
+  percentage?: never;
+}
+
+export interface BillingConfigSubscriptionPlanDiscountPercentage {
+  amount?: never;
+  percentage: number;
+}
+
+export interface BillingConfigSubscriptionPlanDiscount {
+  durationLimitInIntervals?: number;
+  value:
+    | BillingConfigSubscriptionPlanDiscountAmount
+    | BillingConfigSubscriptionPlanDiscountPercentage;
 }
 
 export interface BillingConfigUsagePlan extends BillingConfigPlan {
@@ -34,28 +52,62 @@ export interface BillingConfig {
     | BillingConfigUsagePlan;
 }
 
-export interface CheckParams {
+export interface BillingCheckParams {
   session: Session;
   plans: string[] | string;
   isTest?: boolean;
+  returnObject?: boolean;
 }
 
-export interface RequestParams {
+export interface BillingCheckResponseObject {
+  hasActivePayment: boolean;
+  oneTimePurchases: OneTimePurchase[];
+  appSubscriptions: AppSubscription[];
+}
+
+export type BillingCheckResponse<Params extends BillingCheckParams> =
+  Params['returnObject'] extends true ? BillingCheckResponseObject : boolean;
+
+export interface BillingRequestParams {
   session: Session;
   plan: string;
   isTest?: boolean;
+  returnUrl?: string;
+  returnObject?: boolean;
 }
 
-interface ActiveSubscription {
+export interface BillingRequestResponseObject {
+  confirmationUrl: string;
+  oneTimePurchase?: OneTimePurchase;
+  appSubscription?: AppSubscription;
+}
+
+export type BillingRequestResponse<Params extends BillingRequestParams> =
+  Params['returnObject'] extends true ? BillingRequestResponseObject : string;
+
+export interface BillingCancelParams {
+  session: Session;
+  subscriptionId: string;
+  prorate?: boolean;
+  isTest?: boolean;
+}
+
+export interface BillingSubscriptionParams {
+  session: Session;
+}
+
+export interface AppSubscription {
+  id: string;
   name: string;
   test: boolean;
 }
 
-interface ActiveSubscriptions {
-  activeSubscriptions: ActiveSubscription[];
+export interface ActiveSubscriptions {
+  activeSubscriptions: AppSubscription[];
 }
 
-interface OneTimePurchase {
+export interface OneTimePurchase {
+  id: string;
   name: string;
   test: boolean;
   status: string;
@@ -89,14 +141,43 @@ export interface RequestResponse {
 
 export interface RecurringPaymentResponse {
   data: {
-    appSubscriptionCreate: RequestResponse;
+    appSubscriptionCreate: {
+      userErrors: string[];
+      confirmationUrl: string;
+      appSubscription: AppSubscription;
+    };
   };
   errors?: string[];
 }
 
 export interface SinglePaymentResponse {
   data: {
-    appPurchaseOneTimeCreate: RequestResponse;
+    appPurchaseOneTimeCreate: {
+      userErrors: string[];
+      confirmationUrl: string;
+      oneTimePurchase: OneTimePurchase;
+    };
+  };
+  errors?: string[];
+}
+
+export type RequestResponseData =
+  | RecurringPaymentResponse['data']['appSubscriptionCreate']
+  | SinglePaymentResponse['data']['appPurchaseOneTimeCreate'];
+
+export interface SubscriptionResponse {
+  data: {
+    currentAppInstallation: ActiveSubscriptions;
+  };
+  errors?: string[];
+}
+
+export interface CancelResponse {
+  data: {
+    appSubscriptionCancel: {
+      appSubscription: AppSubscription;
+      userErrors: string[];
+    };
   };
   errors?: string[];
 }
