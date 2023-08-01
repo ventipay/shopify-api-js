@@ -2,11 +2,11 @@ on: [push, pull_request]
 name: CI
 jobs:
   CI:
-    name: CI (${{ matrix.version }})
+    name: CI_Node_${{ matrix.version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: [14, 16, 18]
+        version: [14, 16, 18, 20]
     steps:
       - uses: actions/checkout@master
       - uses: actions/setup-node@v3

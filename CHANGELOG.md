@@ -1,5 +1,88 @@
 # Changelog
 
+## 7.5.0
+
+### Minor Changes
+
+- 7a953a92: Adding support for 2023-07 API version
+
+## 7.4.0
+
+### Minor Changes
+
+- 9735d0c3: Stop sending the privateMetafieldNamespaces field in webhook queries to avoid the API duplication warning, and added a new shopify.utils.versionPriorTo method to help with cases like this one where apps will need to stop doing something that was deprecated.
+- 1d84c135: Add Web API runtime adapter
+
+## 7.3.1
+
+### Patch Changes
+
+- a9ef2e20: Fix crypto module set up for node, so it doesn't break webpack apps
+- 85e7478f: [Internal] Improved tracking of webhook registration GraphQL calls
+
+## 7.3.0
+
+### Minor Changes
+
+- 52047d68: Add optional parameter to `billing.check` and `billing.request` to modify return value to be a more detailed object.
+- 9b8ef033: Added Subscription cancel capabilities for App Billing. Fixes #771
+
+  Usage:
+
+  ```js
+  const canceledSubscription = await shopify.billing.cancel({
+    session,
+    subscriptionId,
+  });
+  ```
+
+  See [Billing Guide](https://github.com/shopify/shopify-api-js/blob/main/docs/guides/billing.md) for more details.
+
+### Patch Changes
+
+- c700888a: Deprecated privateMetafieldNamespaces field in HTTP webhook configurations
+- b6e9f83c: Add shop search param to default billing return URL for non-embedded apps
+- 18671105: Return the performed operation for each handler when registering webhooks
+
+## 7.2.0
+
+### Minor Changes
+
+- 57f31117: Add webhooks.validate method to support webhooks without callbacks
+- 65eb416f: Export BillingCheckParams, BillingRequestParams and session.getJwtSessionId
+
+## 7.1.0
+
+### Minor Changes
+
+- 1a64d96c: Added `returnUrl` as optional parameter to billing `request` function, improved `returnUrl` logic. See [documentation](https://github.com/Shopify/shopify-api-js/blob/main/docs/reference/billing/request.md#returnurl) of `returnUrl` parameter for more details.
+- 89cca000: Discount functionality for App Billing. Fixes [#731](https://github.com/Shopify/shopify-api-js/issues/731)
+
+### Patch Changes
+
+- 8de3c783: Removed `setCrypto` function to simplify runtimes
+- 2628a7fc: Add scopes validation for AuthScopes object and convert it to array. Fixes [#1208](https://github.com/Shopify/shopify-app-template-node/issues/1208), [1221](https://github.com/Shopify/shopify-app-template-node/issues/1221)
+- d028ec0f: Replace `semver` with `compare-versions` lib to reduce dependency on nodejs builtin-libs
+- 7dcecb65: [Custom store apps only] Add new `adminApiAccessToken` parameter to `config` for when `isCustomStoreApp` is `true`. If set, it will be used for API access. `apiSecretKey` should now be set to the custom store app's API secret key, which is used to validate the HMAC of webhook events received from Shopify for a custom store app. Fixes [#772](https://github.com/Shopify/shopify-api-js/issues/772), [#800](https://github.com/Shopify/shopify-api-js/issues/800)
+
+  For apps that don't receive HTTP webhook events from Shopify, no change is required yet - `apiSecretKey` will be used for client authentication as the fallback option.
+
+  Starting with the next major release
+
+  - `adminApiAccessToken` will be mandatory for custom store apps and must be set to the Admin API access token
+  - `apiSecretKey` will not be used for client authentication but must be set for HMAC validation of HTTP webhook events
+
+  See [setting up a custom store app](https://github.com/shopify/shopify-api-js/blob/main/docs/guides/custom-store-app.md) for more details.
+
+- 450c9e7f: Add deprecation notice for removal of Node 14 support from next major release
+- 9c095d12: Bumps [jose](https://github.com/panva/jose) from 4.13.1 to 4.14.1. See jose's [changelog](https://github.com/panva/jose/blob/main/CHANGELOG.md) for more details.
+- f04f0f64: `apiKey` configuration parameter is no longer mandatory when `isCustomStoreApp` is `true`. Fixes [#782](https://github.com/Shopify/shopify-api-js/issues/782)
+- 464fd4f2: Extend support for Event topic names
+- e8966d50: Restoring REST resources for 2022-04, updates to certain resources for other API versions
+- 8de6024f: [Fix] Forward original graphql error message to client
+- f09417c4: Adds check for Google's Crawler in the authorization functions to prevent `CookieNotFound` error loops. Fixes [#686](https://github.com/Shopify/shopify-api-js/issues/686)
+- cbffa2f6: Add trial days and replacement behavior to usage billing mutation. Fixes [#770](https://github.com/Shopify/shopify-api-js/issues/770)
+
 ## 7.0.0
 
 ### Major Changes

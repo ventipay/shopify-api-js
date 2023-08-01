@@ -3,21 +3,19 @@ import {
   setAbstractConvertRequestFunc,
   setAbstractConvertResponseFunc,
   setAbstractConvertHeadersFunc,
-  setCrypto,
   setAbstractRuntimeString,
 } from '../../runtime';
-
 import {
-  workerFetch,
-  workerConvertRequest,
-  workerConvertResponse,
-  workerConvertHeaders,
-  workerRuntimeString,
-} from './adapter';
+  webApiConvertHeaders,
+  webApiConvertRequest,
+  webApiConvertResponse,
+  webApiFetch,
+} from '../web-api/adapter';
 
-setAbstractFetchFunc(workerFetch);
-setAbstractConvertRequestFunc(workerConvertRequest);
-setAbstractConvertResponseFunc(workerConvertResponse);
-setAbstractConvertHeadersFunc(workerConvertHeaders);
+import {workerRuntimeString} from './adapter';
+
+setAbstractFetchFunc(webApiFetch);
+setAbstractConvertRequestFunc(webApiConvertRequest);
+setAbstractConvertResponseFunc(webApiConvertResponse);
+setAbstractConvertHeadersFunc(webApiConvertHeaders);
 setAbstractRuntimeString(workerRuntimeString);
-setCrypto(crypto as any);

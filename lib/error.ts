@@ -87,6 +87,7 @@ export class GraphqlQueryError extends ShopifyError {
 }
 
 export class InvalidOAuthError extends ShopifyError {}
+export class BotActivityDetected extends ShopifyError {}
 export class CookieNotFound extends ShopifyError {}
 export class InvalidSession extends ShopifyError {}
 
@@ -102,6 +103,7 @@ export class InvalidWebhookError extends ShopifyError {
     this.response = response;
   }
 }
+export class MissingWebhookCallbackError extends InvalidWebhookError {}
 export class SessionStorageError extends ShopifyError {}
 
 export class MissingRequiredArgument extends ShopifyError {}

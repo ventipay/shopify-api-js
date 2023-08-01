@@ -1,9 +1,18 @@
 import {Method, Header} from '@shopify/network';
 
-import {RegisterParams, RegisterReturn, WebhookHandler} from '../types';
-import {gdprTopics, ShopifyHeader} from '../../types';
+import {
+  RegisterParams,
+  RegisterReturn,
+  WebhookHandler,
+  WebhookOperation,
+} from '../types';
+import {ApiVersion, gdprTopics, ShopifyHeader} from '../../types';
 import {DataType} from '../../clients/types';
-import {queueMockResponse, shopify} from '../../__tests__/test-helper';
+import {
+  queueMockResponse,
+  queueMockResponses,
+  shopify,
+} from '../../__tests__/test-helper';
 import {mockTestRequests} from '../../../adapters/mock/mock_test_requests';
 import {queryTemplate} from '../query-template';
 import {TEMPLATE_GET_HANDLERS, TEMPLATE_MUTATION} from '../register';
@@ -19,6 +28,7 @@ interface RegisterTestWebhook {
   handler: WebhookHandler;
   checkMockResponse?: MockResponse;
   responses?: MockResponse[];
+  includePrivateMetafieldNamespaces?: boolean;
 }
 
 interface RegisterTestResponse {
@@ -110,7 +120,7 @@ describe('shopify.webhooks.register', () => {
     const topic = 'PRODUCTS_CREATE';
     const handler: WebhookHandler = {
       ...HTTP_HANDLER,
-      privateMetafieldNamespaces: ['new-private-namespace'],
+      metafieldNamespaces: ['new-namespace'],
     };
     const responses = [mockResponses.successUpdateResponse];
 
@@ -126,7 +136,7 @@ describe('shopify.webhooks.register', () => {
       `id: "${mockResponses.TEST_WEBHOOK_ID}"`,
       {
         callbackUrl: `"https://test_host_name/webhooks"`,
-        privateMetafieldNamespaces: '["new-private-namespace"]',
+        metafieldNamespaces: '["new-namespace"]',
       },
     );
     assertRegisterResponse({registerReturn, topic, responses});
@@ -357,6 +367,84 @@ describe('shopify.webhooks.register', () => {
     );
     assertRegisterResponse({registerReturn, topic, responses});
   });
+
+  it('returns which operation was done for each handler', async () => {
+    // We have a pre-existing webhook for PRODUCTS_CREATE, so we expect it to be deleted, whereas we expect a new one to
+    // be created for PRODUCTS_DELETE
+    shopify.webhooks.addHandlers({
+      PRODUCTS_UPDATE: {...HTTP_HANDLER, includeFields: ['id', 'title']},
+      PRODUCTS_DELETE: HTTP_HANDLER,
+    });
+
+    queueMockResponses(
+      [JSON.stringify(mockResponses.webhookCheckMultiHandlerResponse)],
+      [JSON.stringify(mockResponses.successResponse)],
+      [JSON.stringify(mockResponses.successUpdateResponse)],
+      [JSON.stringify(mockResponses.successDeleteResponse)],
+    );
+
+    const registerReturn = await shopify.webhooks.register({session});
+
+    expect(registerReturn.PRODUCTS_CREATE[0].operation).toEqual(
+      WebhookOperation.Delete,
+    );
+    expect(registerReturn.PRODUCTS_DELETE[0].operation).toEqual(
+      WebhookOperation.Create,
+    );
+    expect(registerReturn.PRODUCTS_UPDATE[0].operation).toEqual(
+      WebhookOperation.Update,
+    );
+  });
+
+  it('stops sending the privateMetafieldNamespaces field in versions after 2022-04', async () => {
+    shopify.config.apiVersion = ApiVersion.April23;
+
+    const topic = 'PRODUCTS_CREATE';
+    const handler = {...HTTP_HANDLER, privateMetafieldNamespaces: ['test']};
+    const responses = [mockResponses.successResponse];
+
+    const registerReturn = await registerWebhook({
+      topic,
+      handler,
+      responses,
+    });
+
+    assertWebhookRegistrationRequest(
+      'webhookSubscriptionCreate',
+      `topic: ${topic}`,
+      {callbackUrl: `"https://test_host_name/webhooks"`},
+    );
+    assertRegisterResponse({registerReturn, topic, responses});
+  });
+
+  // The test above this becomes moot when this API version is removed. Delete it as well
+  it('sends the privateMetafieldNamespaces field up until version 2022-04', async () => {
+    shopify.config.apiVersion = ApiVersion.April22;
+
+    const topic = 'PRODUCTS_CREATE';
+    const handler = {...HTTP_HANDLER, privateMetafieldNamespaces: ['test']};
+    const responses = [mockResponses.successResponse];
+
+    const registerReturn = await registerWebhook({
+      topic,
+      handler,
+      responses,
+      includePrivateMetafieldNamespaces: true,
+    });
+
+    assertWebhookRegistrationRequest(
+      'webhookSubscriptionCreate',
+      `topic: ${topic}`,
+      {
+        callbackUrl: `"https://test_host_name/webhooks", privateMetafieldNamespaces: ["test"]`,
+      },
+    );
+    assertRegisterResponse({
+      registerReturn,
+      topic,
+      responses,
+    });
+  });
 });
 
 async function registerWebhook({
@@ -364,6 +452,7 @@ async function registerWebhook({
   handler,
   checkMockResponse = mockResponses.webhookCheckEmptyResponse,
   responses = [],
+  includePrivateMetafieldNamespaces = false,
 }: RegisterTestWebhook): Promise<RegisterReturn> {
   shopify.webhooks.addHandlers({[topic]: handler});
 
@@ -376,7 +465,7 @@ async function registerWebhook({
 
   expect(mockTestRequests.requestList).toHaveLength(responses.length + 1);
 
-  assertWebhookCheckRequest({session});
+  assertWebhookCheckRequest({session}, includePrivateMetafieldNamespaces);
 
   return result;
 }
@@ -395,7 +484,16 @@ function assertRegisterResponse({
   });
 }
 
-function assertWebhookCheckRequest({session}: RegisterParams) {
+function assertWebhookCheckRequest(
+  {session}: RegisterParams,
+  includePrivateMetafieldNamespaces = false,
+) {
+  let query = queryTemplate(TEMPLATE_GET_HANDLERS, {END_CURSOR: 'null'});
+
+  if (!includePrivateMetafieldNamespaces) {
+    query = query.replace('privateMetafieldNamespaces', '');
+  }
+
   expect({
     method: Method.Post.toString(),
     domain: session.shop,
@@ -404,7 +502,7 @@ function assertWebhookCheckRequest({session}: RegisterParams) {
       [Header.ContentType]: DataType.GraphQL.toString(),
       [ShopifyHeader.AccessToken]: session.accessToken,
     },
-    data: queryTemplate(TEMPLATE_GET_HANDLERS, {END_CURSOR: 'null'}),
+    data: query,
   }).toMatchMadeHttpRequest();
 }
 

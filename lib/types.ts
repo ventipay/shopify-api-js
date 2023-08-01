@@ -6,15 +6,17 @@ export enum LogSeverity {
 }
 
 export enum ApiVersion {
+  April22 = '2022-04',
   July22 = '2022-07',
   October22 = '2022-10',
   January23 = '2023-01',
   April23 = '2023-04',
+  July23 = '2023-07',
   Unstable = 'unstable',
 }
 
 export const LIBRARY_NAME = 'Shopify API Library';
-export const LATEST_API_VERSION = ApiVersion.April23;
+export const LATEST_API_VERSION = ApiVersion.July23;
 
 /* eslint-disable @shopify/typescript/prefer-pascal-case-enums */
 export enum ShopifyHeader {
