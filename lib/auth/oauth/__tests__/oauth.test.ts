@@ -56,6 +56,7 @@ describe('beginAuth', () => {
         shop,
         isOnline,
         callbackPath: '/some-callback',
+        cookieDomain: 'myshopify.io',
         rawRequest: request,
       });
 
@@ -75,6 +76,7 @@ describe('beginAuth', () => {
       shop,
       isOnline: false,
       callbackPath: '/some-callback',
+      cookieDomain: 'myshopify.io',
       rawRequest: request,
     });
 
@@ -100,6 +102,7 @@ describe('beginAuth', () => {
       shop,
       isOnline: false,
       callbackPath: '/some-callback',
+      cookieDomain: 'myshopify.io',
       rawRequest: request,
     });
 
@@ -123,6 +126,7 @@ describe('beginAuth', () => {
       shop,
       isOnline: true,
       callbackPath: '/some-callback',
+      cookieDomain: 'myshopify.io',
       rawRequest: request,
     });
 
@@ -148,6 +152,7 @@ describe('beginAuth', () => {
       shop,
       isOnline: true,
       callbackPath: '/some-callback',
+      cookieDomain: 'myshopify.io',
       rawRequest: request,
     });
 
@@ -162,6 +167,7 @@ describe('beginAuth', () => {
         shop,
         isOnline: true,
         callbackPath: '/some-callback',
+        cookieDomain: 'myshopify.io',
         rawRequest: request,
       }),
     ).rejects.toThrow(ShopifyErrors.PrivateAppError);
@@ -200,6 +206,7 @@ describe('callback', () => {
       shop,
       isOnline: true,
       callbackPath: '/some-callback',
+      cookieDomain: 'myshopify.io',
       rawRequest: request,
     });
     setCallbackCookieFromResponse(request, response);
@@ -223,6 +230,7 @@ describe('callback', () => {
       shop,
       isOnline: true,
       callbackPath: '/some-callback',
+      cookieDomain: 'myshopify.io',
       rawRequest: request,
     });
     setCallbackCookieFromResponse(request, response);
@@ -249,6 +257,7 @@ describe('callback', () => {
       shop,
       isOnline: false,
       callbackPath: '/some-callback',
+      cookieDomain: 'myshopify.io',
       rawRequest: request,
     });
     setCallbackCookieFromResponse(request, beginResponse);
@@ -291,6 +300,7 @@ describe('callback', () => {
       shop,
       isOnline: true,
       callbackPath: '/some-callback',
+      cookieDomain: 'myshopify.io',
       rawRequest: request,
     });
     setCallbackCookieFromResponse(request, beginResponse);
@@ -348,6 +358,7 @@ describe('callback', () => {
       shop,
       isOnline: true,
       callbackPath: '/some-callback',
+      cookieDomain: 'myshopify.io',
       rawRequest: request,
     });
     setCallbackCookieFromResponse(request, beginResponse);
@@ -429,6 +440,7 @@ describe('callback', () => {
       shop,
       isOnline: true,
       callbackPath: '/some-callback',
+      cookieDomain: 'myshopify.io',
       rawRequest: request,
     });
     setCallbackCookieFromResponse(request, beginResponse);
@@ -499,6 +511,7 @@ describe('callback', () => {
       shop,
       isOnline: false,
       callbackPath: '/some-callback',
+      cookieDomain: 'myshopify.io',
       rawRequest: request,
     });
     setCallbackCookieFromResponse(request, beginResponse);
@@ -559,6 +572,7 @@ describe('callback', () => {
       shop,
       isOnline: false,
       callbackPath: '/some-callback',
+      cookieDomain: 'myshopify.io',
       rawRequest: request,
     });
     setCallbackCookieFromResponse(request, beginResponse);

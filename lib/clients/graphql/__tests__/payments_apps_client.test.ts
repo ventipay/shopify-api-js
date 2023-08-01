@@ -47,7 +47,7 @@ describe('GraphQL client', () => {
   });
 
   it('can return response', async () => {
-    const client = new shopify.clients.PaymentApps({session});
+    const client = new shopify.clients.PaymentsApps({session});
     queueMockResponse(JSON.stringify(successResponse));
 
     const response = await client.query({data: QUERY});
