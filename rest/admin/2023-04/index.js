@@ -29,6 +29,8 @@ const customer_address_1 = require("./customer_address");
 const customer_saved_search_1 = require("./customer_saved_search");
 const deprecated_api_call_1 = require("./deprecated_api_call");
 const discount_code_1 = require("./discount_code");
+const dispute_1 = require("./dispute");
+const dispute_evidence_1 = require("./dispute_evidence");
 const dispute_file_upload_1 = require("./dispute_file_upload");
 const draft_order_1 = require("./draft_order");
 const event_1 = require("./event");
@@ -52,6 +54,7 @@ const order_risk_1 = require("./order_risk");
 const page_1 = require("./page");
 const payment_1 = require("./payment");
 const payment_gateway_1 = require("./payment_gateway");
+const payment_transaction_1 = require("./payment_transaction");
 const payout_1 = require("./payout");
 const policy_1 = require("./policy");
 const price_rule_1 = require("./price_rule");
@@ -102,6 +105,8 @@ exports.restResources = {
     CustomerSavedSearch: customer_saved_search_1.CustomerSavedSearch,
     DeprecatedApiCall: deprecated_api_call_1.DeprecatedApiCall,
     DiscountCode: discount_code_1.DiscountCode,
+    Dispute: dispute_1.Dispute,
+    DisputeEvidence: dispute_evidence_1.DisputeEvidence,
     DisputeFileUpload: dispute_file_upload_1.DisputeFileUpload,
     DraftOrder: draft_order_1.DraftOrder,
     Event: event_1.Event,
@@ -125,6 +130,7 @@ exports.restResources = {
     Page: page_1.Page,
     Payment: payment_1.Payment,
     PaymentGateway: payment_gateway_1.PaymentGateway,
+    PaymentTransaction: payment_transaction_1.PaymentTransaction,
     Payout: payout_1.Payout,
     Policy: policy_1.Policy,
     PriceRule: price_rule_1.PriceRule,

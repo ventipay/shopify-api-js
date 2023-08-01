@@ -47,8 +47,8 @@ class OrderRisk extends base_1.Base {
 }
 exports.OrderRisk = OrderRisk;
 OrderRisk.apiVersion = types_1.ApiVersion.April23;
-OrderRisk.resourceName = 'order_risk';
-OrderRisk.pluralName = 'order_risks';
+OrderRisk.resourceName = 'risk';
+OrderRisk.pluralName = 'risks';
 OrderRisk.hasOne = {};
 OrderRisk.hasMany = {};
 OrderRisk.paths = [

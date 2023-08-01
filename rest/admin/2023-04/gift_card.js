@@ -7,6 +7,8 @@ exports.GiftCard = void 0;
 const tslib_1 = require("tslib");
 const base_1 = require("../../base");
 const types_1 = require("../../../lib/types");
+const balance_1 = require("./balance");
+const currency_1 = require("./currency");
 class GiftCard extends base_1.Base {
     static find({ session, id }) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
@@ -79,7 +81,10 @@ exports.GiftCard = GiftCard;
 GiftCard.apiVersion = types_1.ApiVersion.April23;
 GiftCard.resourceName = 'gift_card';
 GiftCard.pluralName = 'gift_cards';
-GiftCard.hasOne = {};
+GiftCard.hasOne = {
+    "balance": balance_1.Balance,
+    "currency": currency_1.Currency
+};
 GiftCard.hasMany = {};
 GiftCard.paths = [
     { "http_method": "get", "operation": "count", "ids": [], "path": "gift_cards/count.json" },

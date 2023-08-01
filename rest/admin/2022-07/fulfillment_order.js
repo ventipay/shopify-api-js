@@ -60,14 +60,14 @@ class FulfillmentOrder extends base_1.Base {
         });
     }
     hold(_a) {
-        var { reason = null, reason_notes = null, notify_merchant = null, body = null } = _a, otherArgs = tslib_1.__rest(_a, ["reason", "reason_notes", "notify_merchant", "body"]);
+        var { fulfillment_hold = null, body = null } = _a, otherArgs = tslib_1.__rest(_a, ["fulfillment_hold", "body"]);
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const response = yield this.request({
                 http_method: "post",
                 operation: "hold",
                 session: this.session,
                 urlIds: { "id": this.id },
-                params: Object.assign({ "reason": reason, "reason_notes": reason_notes, "notify_merchant": notify_merchant }, otherArgs),
+                params: Object.assign({ "fulfillment_hold": fulfillment_hold }, otherArgs),
                 body: body,
                 entity: this,
             });
